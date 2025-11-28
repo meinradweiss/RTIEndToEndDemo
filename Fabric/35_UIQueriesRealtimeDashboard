@@ -1,0 +1,30 @@
+IngestDuration
+| where metric == 'noise'| project-away metric
+| take 10
+
+
+IngestDuration
+| summarize min(latency_ms)
+          , median_latency_ms  = percentile(latency_ms, 50)
+          , avg(latency_ms)
+          , max(latency_ms) 
+            by bin(timestamp, 15min)
+| extend min_latency_ms    = round(min_latency_ms,0)
+        ,median_latency_ms = round(median_latency_ms,0)
+        ,avg_latency_ms    = round(avg_latency_ms,0)
+        ,max_latency_ms    = round(max_latency_ms,0)
+
+
+IngestDuration
+
+
+ShowSensorDataWithLocation(_startTime) 
+| where metric == 'temperature'
+| summarize avg(value) by city, longitude, latitude
+
+
+ShowSensorDataWithLocation(_startTime)
+| where metric == 'temperature'
+| summarize avg_value = round(avg(value), 2)  by city, longitude, latitude
+| extend  avg_value= strcat(tostring(avg_value), iff(strlen(split(tostring(avg_value), ".")[1]) == 1, "0", ""))
+| order by  avg_value
