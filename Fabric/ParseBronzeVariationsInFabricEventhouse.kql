@@ -1,1 +1,60 @@
 
+
+// Simple Version, measurements as columns
+BronzeMetrics
+| take 1
+| evaluate bag_unpack(Data)
+| evaluate bag_unpack(data)
+| evaluate bag_unpack(context)
+| evaluate bag_unpack(measurement)
+
+
+
+// More dynamic approach, measurements as rows
+BronzeMetrics
+| take 1
+| evaluate bag_unpack(Data)
+| evaluate bag_unpack(data)
+| evaluate bag_unpack(context)
+| extend keys = bag_keys(measurement)
+| mv-expand key = keys
+| extend metric = tostring(key)
+| extend value = todouble(measurement[metric])
+| extend measurandId = strcat(sensorId, '_', metric)
+| project measurandId, sensorId, metric, timestamp, value
+| order by measurandId | take 3
+
+
+
+
+
+// Better performance
+// Reference query
+BronzeMetrics
+//| take 1
+| evaluate bag_unpack(Data)
+| evaluate bag_unpack(data)
+| evaluate bag_unpack(context)
+//|getschema 
+| extend keys = bag_keys(measurement)
+| mv-expand key = keys
+| extend metric = tostring(key)
+| extend value = todouble(measurement[metric])
+| extend measurandId = strcat(sensorId, '_', metric)
+| project measurandId, sensorId, metric, timestamp, value
+| order by measurandId | take 3
+
+// Better efficiency
+BronzeMetrics
+//| take 1
+| extend measurement=Data.data.measurement
+| extend sensorId  = tostring(Data.data.context.sensorId)
+       , timestamp = todatetime(Data.data.context.timestamp)
+| project-away Data
+| extend keys = bag_keys(measurement)
+| mv-expand key = keys
+| extend metric = tostring(key)
+| extend value = todouble(measurement[metric])
+| extend measurandId = strcat(sensorId, '_', metric)
+| project measurandId, sensorId, metric, timestamp, value
+| order by measurandId | take 3
