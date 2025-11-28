@@ -1,0 +1,20 @@
+    GoldMetrics
+    | where metric == "temperature" 
+    | lookup external_table('SensorInfo') on sensorId
+    | where city == 'Basel' 
+    | lookup external_table('CityCoordinates') on city
+    | project timestamp, metric, value, 
+              brand, equipment,
+              city, longitude, latitude
+    | order by timestamp              
+
+.create-or-alter function with (folder="Gold") ShowSensorDataWithLocation(since:datetime = datetime(null)) 
+{
+    GoldMetrics
+    | where isempty(since) or timestamp >= since
+    | lookup external_table('SensorInfo') on sensorId
+    | lookup external_table('CityCoordinates') on city
+}
+
+
+ShowSensorDataWithLocation('2025-07-21 11:09:47.5426090')
