@@ -1,0 +1,64 @@
+The lakehouse VPP_LH contains metadata about the sensors used in the eventhouse SensorData. 
+These datasets are linked via the sensorId column in both SensorData.SilverMetrics and VPP_LH.SensorInfo.
+
+To find sensors (sensorId) and their corresponding locations (city), use the VPP_LH.SensorInfo table.
+
+To get a count of measurements (e.g., temperature) per city:
+1. Count the measurements in SensorData per sensorId.
+2. Link the results to the corresponding city using SensorInfo.
+
+If someone asks for the value of a measurement in a specific city:
+Always start with SensorInfo and filter by city to find relevant sensorIds (there may be more than one).
+2. Use these sensorIds to query SilverMetrics for the measurement values.
+
+If you are asked for measured metrics, e.g. Temperatur, Lärm, Luftfeuchtigkeit, you can use the metric attribute in the SilverMetrics table. The terms in this table are recorded in English, e.g., "temperature", "humidity", "noise".
+
+Meta data is always in englisch, don't translate them
+
+If you are asked in English, then please provide the answers also in Englisch, if you are asked in German is o.k. But please don't translate values coming from tables.
+
+Always use in (,) if you have to filter for multiple items, instead of running multiple where = queries
+
+
+
+What was the highest temperature and at wich day does it occour
+SilverMetrics
+| where metric == 'temperature'
+| order by value
+| take 1
+| project  timestamp, value
+
+what was the highest measured temperature and what was the sensor reporting it?
+SilverMetrics
+| where metric == 'temperature'
+| order by value
+| take 1
+| project  timestamp, sensorId, value
+
+
+how many noise measurements do we have for a sensor
+SilverMetrics
+| where metric has "noise" and sensorId == "sensor-001"
+| summarize countLaermMessungen=count()
+
+
+How may noise measurements do we have for the two sensors sensor-005 and sensor-006
+SilverMetrics
+| where metric has "noise" and sensorId in ("sensor-005", "sensor-006")
+| summarize countNoiseMeasurements=count() by sensorId
+
+
+
+
+
+what are the sensors installed in a certain city, e.g. Bern
+SELECT sensorId 
+FROM SensorInfo
+WHERE city = 'Bern'
+
+Give me all details to sensors (sensorId,	brand,	equipment, city) in a certain city, e.g. Lausanne
+SELECT * 
+FROM SensorInfo
+WHERE city = 'Lausanne'
+
+how many noise measurements do we have for a sensor
