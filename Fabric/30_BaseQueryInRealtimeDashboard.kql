@@ -1,0 +1,6 @@
+GoldMetrics
+| where timestamp >= _startTime
+| extend latency=  ingestion_time - timestamp
+| extend latency_ms = tolong(latency / 1ms)
+| order by  timestamp
+| project timestamp, sensorId, latency_ms, metric
